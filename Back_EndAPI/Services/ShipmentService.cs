@@ -17,16 +17,21 @@ namespace Back_EndAPI.Services
         public async Task ReceiveShipmentAsync(ReceiveShipmentRequest request)
         {
             var shipment = await _context.ReceivedShipments
+                .Include(s => s.ReceivedItems)
                 .FirstOrDefaultAsync(s => s.Id == request.ShipmentId);
 
             if (shipment == null)
-                throw new Exception("Shipment does not exist.");
+                throw new KeyNotFoundException("Shipment not found.");
+
+     
+            if (shipment.ReceivedItems.Any())
+                throw new InvalidOperationException("Shipment has already been received.");
+
 
             foreach (var itemDto in request.Items)
             {
                 if (itemDto.QuantityReceived <= 0)
                     throw new Exception("Invalid quantity received.");
-
 
                 var bin = await _context.Bins
                     .FirstOrDefaultAsync(b => b.SkuNumber == itemDto.SkuNumber);
@@ -34,10 +39,10 @@ namespace Back_EndAPI.Services
                 if (bin == null)
                     throw new Exception($"No bin found for SKU {itemDto.SkuNumber}.");
 
-
+                // Update inventory
                 bin.Qtystored = (bin.Qtystored ?? 0) + itemDto.QuantityReceived;
 
-
+                // Insert ReceivedItem
                 var receivedItem = new ReceivedItem
                 {
                     SkuNumber = itemDto.SkuNumber,
@@ -46,8 +51,9 @@ namespace Back_EndAPI.Services
                 };
 
                 _context.ReceivedItems.Add(receivedItem);
+                await _context.SaveChangesAsync(); // needed to get receivedItem.Id
 
-                await _context.SaveChangesAsync(); 
+                // Insert ReceivedHistory
                 var history = new ReceivedHistory
                 {
                     ReceivedItemId = receivedItem.Id,
@@ -60,5 +66,6 @@ namespace Back_EndAPI.Services
 
             await _context.SaveChangesAsync();
         }
+
     }
 }

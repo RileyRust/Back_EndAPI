@@ -26,6 +26,14 @@ namespace Back_EndAPI.Controllers
                 await _service.ReceiveShipmentAsync(request);
                 return Ok(new { message = "Shipment received successfully." });
             }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { error = ex.Message });
+            }
             catch (Exception ex)
             {
                 return BadRequest(new { error = ex.Message });
