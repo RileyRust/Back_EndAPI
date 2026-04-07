@@ -4,13 +4,16 @@ namespace Back_EndAPI.Models.PurchaseOrders
 {
     public class CreatePurchaseOrderRequest
     {
-        [Required]
         public DateOnly DateOrdered { get; set; }
-
-        [Required]
         public int VendorId { get; set; }
-
-        [Range(0, int.MaxValue)]
         public int ExpectedTotalCost { get; set; }
+
+        public List<PurchaseOrderItemDto> Items { get; set; } = new();
+    }
+
+    public class PurchaseOrderItemDto
+    {
+        public int ProductId { get; set; }   
+        public int Quantity { get; set; }   
     }
 }
