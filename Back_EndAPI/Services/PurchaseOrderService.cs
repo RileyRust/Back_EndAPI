@@ -1,66 +1,84 @@
 ﻿using Back_EndAPI.Data;
 using Back_EndAPI.Entities;
 using Back_EndAPI.Models.PurchaseOrders;
+using Microsoft.EntityFrameworkCore;
 
-namespace Back_EndAPI.Services
+namespace Back_EndAPI.Services;
+
+public class PurchaseOrderService
 {
-    public class PurchaseOrderService
+    private readonly AppDbContext _context;
+    public PurchaseOrderService(AppDbContext context) => _context = context;
+
+    public async Task<PurchaseOrderResponse> CreateAsync(CreatePurchaseOrderRequest request)
     {
-        private readonly AppDbContext _context;
+        if (request.Items == null || !request.Items.Any())
+            throw new InvalidOperationException("Purchase order must contain one or more items.");
 
-        public PurchaseOrderService(AppDbContext context)
+        if (request.Items.Any(i => i.Quantity <= 0))
+            throw new InvalidOperationException("Quantities must be greater than zero.");
+
+        var vendorExists = await _context.Vendors.AnyAsync(v => v.Id == request.VendorId);
+        if (!vendorExists)
+            throw new KeyNotFoundException("Vendor not found.");
+
+        var po = new PurchaseOrder
         {
-            _context = context;
-        }
+            DateOrdered = request.DateOrdered,
+            VendorId = request.VendorId
+        };
 
-        public async Task<PurchaseOrder> CreateAsync(CreatePurchaseOrderRequest request)
+        _context.PurchaseOrders.Add(po);
+        await _context.SaveChangesAsync(); // generates po.Id
+
+        foreach (var item in request.Items)
         {
-     
-            if (request.Items == null || !request.Items.Any())
-                throw new InvalidOperationException("Purchase order must contain at least one item.");
-
-  
-            foreach (var item in request.Items)
+            var orderedItem = new OrderedItem
             {
-                if (item.ProductId <= 0)
-                    throw new InvalidOperationException("Each item must include a valid productId.");
-
-                if (item.Quantity <= 0)
-                    throw new InvalidOperationException("Quantity must be greater than 0.");
-            }
-
-      
-            var po = new PurchaseOrder
-            {
-                DateOrdered = request.DateOrdered,
-                Vendorid = request.VendorId,
-                ExpectedTotalCost = request.ExpectedTotalCost
-            
+                PurchaseId = po.Id,
+                SkuNumber = item.ProductId,
+                Qty = item.Quantity
             };
 
-            _context.PurchaseOrders.Add(po);
-            await _context.SaveChangesAsync();
-
-
-            foreach (var item in request.Items)
-            {
-                var orderedItem = new OrderedItem
-                {
-                    PurchaseId = po.Id,         
-                    SkuNumber = item.ProductId, 
-                    Qty = item.Quantity,        
-                    CostPerUnit = 0             
-                };
-
-                _context.OrderedItems.Add(orderedItem);
-            }
-
-            await _context.SaveChangesAsync();
-
-            return po;
+            _context.OrderedItems.Add(orderedItem);
         }
 
+        await _context.SaveChangesAsync();
 
+        return new PurchaseOrderResponse
+        {
+            Id = po.Id,
+            DateOrdered = po.DateOrdered,
+            VendorId = po.VendorId,
+            ExpectedTotalCost = request.ExpectedTotalCost,
+            Status = "CREATED"
+        };
+    }
 
+    public async Task<PurchaseOrderResponse?> GetByIdAsync(int id)
+    {
+        var po = await _context.PurchaseOrders
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (po == null)
+            return null;
+
+        // Load ordered items manually
+        var items = await _context.OrderedItems
+            .Where(i => i.PurchaseId == po.Id)
+            .ToListAsync();
+
+        return new PurchaseOrderResponse
+        {
+            Id = po.Id,
+            DateOrdered = po.DateOrdered,
+            VendorId = po.VendorId,
+            Status = "CREATED",
+            Items = items.Select(i => new OrderedItemResponse
+            {
+                ProductId = i.SkuNumber,
+                Quantity = i.Qty
+            }).ToList()
+        };
     }
 }

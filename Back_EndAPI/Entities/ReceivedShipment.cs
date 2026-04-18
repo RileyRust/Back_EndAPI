@@ -7,22 +7,16 @@ using Microsoft.EntityFrameworkCore;
 namespace Back_EndAPI.Entities;
 
 [Table("received_shipment", Schema = "Team2Part2")]
-public partial class ReceivedShipment
+public class ReceivedShipment
 {
     [Key]
     [Column("id")]
     public int Id { get; set; }
 
     [Column("purchase_order_id")]
-    public int? PurchaseOrderId { get; set; }
+    public int PurchaseOrderId { get; set; }
 
     [Column("date")]
-    public DateOnly? Date { get; set; }
-
-    [ForeignKey("PurchaseOrderId")]
-    [InverseProperty("ReceivedShipments")]
-    public virtual PurchaseOrder? PurchaseOrder { get; set; }
-
-    [InverseProperty("Shipment")]
-    public virtual ICollection<ReceivedItem> ReceivedItems { get; set; } = new List<ReceivedItem>();
+    public DateOnly Date { get; set; }
 }
+

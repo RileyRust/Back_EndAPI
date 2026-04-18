@@ -14,9 +14,9 @@ namespace Back_EndAPI.Models.Shipments
     public class ReceivedItemDto
     {
         [Required]
-        public int SkuNumber { get; set; }
+        public int ProductId { get; set; }
 
         [Range(1, int.MaxValue)]
-        public int QuantityReceived { get; set; }
+        public int Quantity { get; set; }
     }
 }

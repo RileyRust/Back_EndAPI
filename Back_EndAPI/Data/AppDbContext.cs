@@ -22,11 +22,22 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Bin> Bins { get; set; }
 
+    public virtual DbSet<Box> Boxes { get; set; }
+
+    public virtual DbSet<Carrier> Carriers { get; set; }
+
+    public virtual DbSet<Customer> Customers { get; set; }
+
+    public virtual DbSet<Order> CustomerOrders { get; set; }
+
     public virtual DbSet<Discrepancy> Discrepancies { get; set; }
 
     public virtual DbSet<Item> Items { get; set; }
 
+    public virtual DbSet<Login> Logins { get; set; }
+
     public virtual DbSet<OrderedItem> OrderedItems { get; set; }
+
 
     public virtual DbSet<PurchaseOrder> PurchaseOrders { get; set; }
 
@@ -38,9 +49,18 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Shelf> Shelves { get; set; }
 
+    public virtual DbSet<ShippedItem> ShippedItems { get; set; }
+
+    public virtual DbSet<OrderLine> SoldItems { get; set; }
+
     public virtual DbSet<TransferRecord> TransferRecords { get; set; }
 
     public virtual DbSet<Vendor> Vendors { get; set; }
+
+    public DbSet<Order> Orders { get; set; }
+    public DbSet<OrderLine> OrderLines { get; set; }
+    public DbSet<User> Users { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -89,57 +109,78 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.SkuNumberNavigation).WithMany(p => p.Bins).HasConstraintName("fk_sku_number");
         });
 
-        modelBuilder.Entity<Discrepancy>(entity =>
+        modelBuilder.Entity<Box>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("discrepancy_pkey");
+            entity.HasKey(e => e.Tracking).HasName("box_pkey");
 
-            entity.HasOne(d => d.OrderedItem).WithMany(p => p.Discrepancies).HasConstraintName("discrepancy_ordered_item_id_fkey");
+            entity.Property(e => e.Tracking).ValueGeneratedNever();
 
-            entity.HasOne(d => d.ReceivedItem).WithMany(p => p.Discrepancies).HasConstraintName("discrepancy_received_item_id_fkey");
+  
         });
+
+        modelBuilder.Entity<Carrier>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("carrier_pkey");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+        });
+
+        modelBuilder.Entity<Customer>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("customer_pkey");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+        });
+
+        modelBuilder.Entity<Order>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("customer_order_pkey");
+
+            entity.Property(e => e.Id).UseIdentityAlwaysColumn();
+  
+      
+        });
+
+   
 
         modelBuilder.Entity<Item>(entity =>
         {
             entity.HasKey(e => e.SkuNumber).HasName("item_pkey");
         });
 
-        modelBuilder.Entity<OrderedItem>(entity =>
+        modelBuilder.Entity<Login>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("ordered_item_pkey");
+            entity.HasKey(e => e.Id).HasName("login_pkey");
 
-            entity.HasOne(d => d.Purchase).WithMany(p => p.OrderedItems).HasConstraintName("ordered_item_purchase_id_fkey");
+            entity.Property(e => e.Id).ValueGeneratedNever();
 
-            entity.HasOne(d => d.SkuNumberNavigation).WithMany(p => p.OrderedItems).HasConstraintName("ordered_item_sku_number_fkey");
+            entity.HasOne(d => d.Customer).WithMany(p => p.Logins).HasConstraintName("login_customer_id_fkey");
         });
 
         modelBuilder.Entity<PurchaseOrder>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("purchase_order_pkey");
 
-            entity.HasOne(d => d.Vendor).WithMany(p => p.PurchaseOrders).HasConstraintName("purchase_order_vendorid_fkey");
+            
         });
 
         modelBuilder.Entity<ReceivedHistory>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("received_history_pkey");
 
-            entity.HasOne(d => d.ReceivedItem).WithMany(p => p.ReceivedHistories).HasConstraintName("received_history_received_item_id_fkey");
         });
 
         modelBuilder.Entity<ReceivedItem>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("received_item_pkey");
 
-            entity.HasOne(d => d.Shipment).WithMany(p => p.ReceivedItems).HasConstraintName("received_item_shipment_id_fkey");
-
-            entity.HasOne(d => d.SkuNumberNavigation).WithMany(p => p.ReceivedItems).HasConstraintName("received_item_sku_number_fkey");
         });
 
         modelBuilder.Entity<ReceivedShipment>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("received_shipment_pkey");
 
-            entity.HasOne(d => d.PurchaseOrder).WithMany(p => p.ReceivedShipments).HasConstraintName("received_shipment_purchase_order_id_fkey");
+  
         });
 
         modelBuilder.Entity<Shelf>(entity =>
@@ -149,13 +190,35 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.ShelfLetter).ValueGeneratedNever();
         });
 
+        modelBuilder.Entity<ShippedItem>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("shippeditem_pkey");
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Qty).HasDefaultValue(1);
+
+            entity.HasOne(d => d.BoxTrackingNavigation).WithMany(p => p.ShippedItems).HasConstraintName("shippeditem_box_tracking_fkey");
+
+            entity.HasOne(d => d.SkuNumberNavigation).WithMany(p => p.ShippedItems).HasConstraintName("shippeditem_sku_number_fkey");
+        });
+
+        modelBuilder.Entity<OrderLine>(entity =>
+        {
+        
+            entity.Property(e => e.Qty).HasDefaultValue(1);
+
+           
+ 
+        });
+
         modelBuilder.Entity<TransferRecord>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("transferrecord_pkey");
 
             entity.Property(e => e.Id).HasDefaultValueSql("nextval('\"Team2Part2\".transferrecord_id_seq'::regclass)");
 
-            entity.HasOne(d => d.Receiveditem).WithMany(p => p.TransferRecords).HasConstraintName("transferrecord_receiveditemid_fkey");
+          
+            entity.HasOne(d => d.ShippedItem).WithMany(p => p.TransferRecords).HasConstraintName("fk_shipped_item");
 
             entity.HasOne(d => d.Storagelocation).WithMany(p => p.TransferRecords).HasConstraintName("transferrecord_storagelocationid_fkey");
         });
@@ -164,6 +227,8 @@ public partial class AppDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("vendor_pkey");
         });
+        modelBuilder.HasSequence("shipped_item_id_seq", "Team2Part2");
+        modelBuilder.HasSequence("transfer_record_id_seq", "Team2Part2");
 
         OnModelCreatingPartial(modelBuilder);
     }

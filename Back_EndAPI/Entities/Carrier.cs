@@ -6,11 +6,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Back_EndAPI.Entities;
 
-[Table("purchase_order", Schema = "Team2Part2")]
-public class PurchaseOrder
+[Table("carrier", Schema = "Team2Part2")]
+public partial class Carrier
 {
+    [Key]
+    [Column("id")]
     public int Id { get; set; }
-    public DateOnly DateOrdered { get; set; }
-    public int VendorId { get; set; }
-}
 
+    [Column("name")]
+    [StringLength(100)]
+    public string Name { get; set; } = null!;
+   
+}

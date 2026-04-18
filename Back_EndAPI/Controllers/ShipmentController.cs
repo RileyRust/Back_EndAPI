@@ -1,43 +1,38 @@
 ﻿using Back_EndAPI.Models.Shipments;
 using Back_EndAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Back_EndAPI.Controllers
+namespace Back_EndAPI.Controllers;
+
+[ApiController]
+[Route("shipments")]
+public class ShipmentController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class ShipmentController : ControllerBase
+    private readonly ShipmentService _service;
+
+    public ShipmentController(ShipmentService service)
     {
-        private readonly ShipmentService _service;
+        _service = service;
+    }
 
-        public ShipmentController(ShipmentService service)
-        {
-            _service = service;
-        }
+    [HttpPost]
+    public async Task<ActionResult<int>> Create(CreateShipmentRequest request)
+    {
+        var id = await _service.CreateAsync(request);
+        return CreatedAtAction(nameof(GetById), new { id }, new { id });
+    }
 
-        [HttpPost("receive")]
-        public async Task<IActionResult> ReceiveShipment([FromBody] ReceiveShipmentRequest request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+    [HttpPost("{id:int}/receive")]
+    public async Task<IActionResult> Receive(int id, ReceiveShipmentRequest request)
+    {
+        await _service.ReceiveAsync(id, request);
+        return Ok();
+    }
 
-            try
-            {
-                await _service.ReceiveShipmentAsync(request);
-                return Ok(new { message = "Shipment received successfully." });
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(new { error = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return Conflict(new { error = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
-        }
+    [HttpGet("{id:int}")]
+    public IActionResult GetById(int id)
+    {
+        return Ok(); // optional for assignment
     }
 }

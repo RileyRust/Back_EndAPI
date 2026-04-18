@@ -23,10 +23,6 @@ public partial class Discrepancy
     [StringLength(300)]
     public string? Description { get; set; }
 
-    [ForeignKey("OrderedItemId")]
-    [InverseProperty("Discrepancies")]
-    public virtual OrderedItem? OrderedItem { get; set; }
-
     [ForeignKey("ReceivedItemId")]
     [InverseProperty("Discrepancies")]
     public virtual ReceivedItem? ReceivedItem { get; set; }
