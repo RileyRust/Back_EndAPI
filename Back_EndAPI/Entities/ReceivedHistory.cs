@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
-
-namespace Back_EndAPI.Entities;
 
 [Table("received_history", Schema = "Team2Part2")]
 public partial class ReceivedHistory
@@ -24,6 +19,5 @@ public partial class ReceivedHistory
     public string? Comment { get; set; }
 
     [ForeignKey("ReceivedItemId")]
-    [InverseProperty("ReceivedHistories")]
     public virtual ReceivedItem? ReceivedItem { get; set; }
 }

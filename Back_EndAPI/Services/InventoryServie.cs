@@ -35,4 +35,35 @@ public class InventoryService
             Quantity = bin.Qtystored ?? 0
         };
     }
+    public async Task<InventoryListResponse> GetInventoryAsync(int? productId)
+    {
+        var query = _context.Bins
+            .Include(b => b.SkuNumberNavigation) 
+            .AsQueryable();
+
+        if (productId.HasValue)
+            query = query.Where(b => b.SkuNumber == productId.Value);
+
+        var grouped = await query
+            .GroupBy(b => new
+            {
+                ProductId = b.SkuNumber,
+                Sku = b.SkuNumberNavigation.SkuNumber
+            })
+            .Select(g => new InventoryItemResponse
+            {
+                ProductId = g.Key.ProductId ?? 0,
+                Sku = g.Key.Sku.ToString(),
+                TotalQuantity = g.Sum(x => x.Qtystored ?? 0),
+                Bins = g.Select(x => new InventoryBinResponse
+                {
+                    BinId = x.Id,
+                    Quantity = x.Qtystored ?? 0
+                }).ToList()
+            })
+            .ToListAsync();
+
+        return new InventoryListResponse { Items = grouped };
+    }
+
 }

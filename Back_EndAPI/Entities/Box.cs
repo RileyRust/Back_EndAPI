@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Back_EndAPI.Entities;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
-
-namespace Back_EndAPI.Entities;
 
 [Table("box", Schema = "Team2Part2")]
 public partial class Box
@@ -28,9 +25,7 @@ public partial class Box
     public DateOnly? DateShipped { get; set; }
 
     [ForeignKey("CustomerOrderId")]
-    [InverseProperty("Boxes")]
-    public Order Order { get; set; }
-
+    public Order? Order { get; set; }
 
     [InverseProperty("BoxTrackingNavigation")]
     public virtual ICollection<ShippedItem> ShippedItems { get; set; } = new List<ShippedItem>();

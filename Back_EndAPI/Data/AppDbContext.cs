@@ -51,14 +51,13 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<ShippedItem> ShippedItems { get; set; }
 
-    public virtual DbSet<OrderLine> SoldItems { get; set; }
+    public DbSet<SoldItem> SoldItems { get; set; }
 
     public virtual DbSet<TransferRecord> TransferRecords { get; set; }
 
     public virtual DbSet<Vendor> Vendors { get; set; }
 
     public DbSet<Order> Orders { get; set; }
-    public DbSet<OrderLine> OrderLines { get; set; }
     public DbSet<User> Users { get; set; }
 
 
@@ -94,6 +93,18 @@ public partial class AppDbContext : DbContext
             entity.HasKey(e => e.BayNumber).HasName("bay_pkey");
 
             entity.Property(e => e.BayNumber).ValueGeneratedNever();
+        });
+
+        modelBuilder.Entity<SoldItem>(entity =>
+        {
+            entity.ToTable("sold_item", "Team2Part2");
+
+            entity.HasKey(e => new { e.SkuNumber, e.CustomerOrderId })
+                  .HasName("sold_item_pkey");
+
+            entity.Property(e => e.SkuNumber).HasColumnName("sku_number");
+            entity.Property(e => e.CustomerOrderId).HasColumnName("customer_order_id");
+            entity.Property(e => e.Qty).HasColumnName("qty").HasDefaultValue(1);
         });
 
         modelBuilder.Entity<Bin>(entity =>
@@ -192,36 +203,43 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<ShippedItem>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("shippeditem_pkey");
+            entity.HasKey(e => new { e.BoxTracking, e.SkuNumber })
+                  .HasName("shipped_item_pkey");
 
-            entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.Qty).HasDefaultValue(1);
+            entity.Property(e => e.BoxTracking).HasColumnName("box_tracking");
+            entity.Property(e => e.SkuNumber).HasColumnName("sku_number");
+            entity.Property(e => e.Qty).HasColumnName("qty");
 
-            entity.HasOne(d => d.BoxTrackingNavigation).WithMany(p => p.ShippedItems).HasConstraintName("shippeditem_box_tracking_fkey");
+            entity.HasOne(d => d.BoxTrackingNavigation)
+                .WithMany(p => p.ShippedItems)
+                .HasForeignKey(d => d.BoxTracking)
+                .HasConstraintName("shippeditem_box_tracking_fkey");
 
-            entity.HasOne(d => d.SkuNumberNavigation).WithMany(p => p.ShippedItems).HasConstraintName("shippeditem_sku_number_fkey");
+            entity.HasOne(d => d.SkuNumberNavigation)
+                .WithMany(p => p.ShippedItems)
+                .HasForeignKey(d => d.SkuNumber)
+                .HasConstraintName("shippeditem_sku_number_fkey");
         });
 
-        modelBuilder.Entity<OrderLine>(entity =>
-        {
-        
-            entity.Property(e => e.Qty).HasDefaultValue(1);
 
-           
- 
-        });
+
 
         modelBuilder.Entity<TransferRecord>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("transferrecord_pkey");
 
-            entity.Property(e => e.Id).HasDefaultValueSql("nextval('\"Team2Part2\".transferrecord_id_seq'::regclass)");
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("nextval('\"Team2Part2\".transferrecord_id_seq'::regclass)");
 
-          
-            entity.HasOne(d => d.ShippedItem).WithMany(p => p.TransferRecords).HasConstraintName("fk_shipped_item");
+     
 
-            entity.HasOne(d => d.Storagelocation).WithMany(p => p.TransferRecords).HasConstraintName("transferrecord_storagelocationid_fkey");
+
+            entity.HasOne(d => d.Receiveditem)
+                .WithMany()
+                .HasForeignKey(d => d.Receiveditemid)
+                .HasConstraintName("fk_received_item");
         });
+
 
         modelBuilder.Entity<Vendor>(entity =>
         {

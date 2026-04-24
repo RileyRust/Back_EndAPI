@@ -22,4 +22,15 @@ public class InventoryController : ControllerBase
         var result = await _service.StoreAsync(request);
         return Ok(result);
     }
+
+    [HttpGet]
+    public async Task<ActionResult<InventoryListResponse>> GetInventory([FromQuery] int? productId)
+    {
+        var result = await _service.GetInventoryAsync(productId);
+
+        if (productId.HasValue && result.Items.Count == 0)
+            return NotFound();
+
+        return Ok(result);
+    }
 }

@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Back_EndAPI.Entities;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
-
-namespace Back_EndAPI.Entities;
 
 [Table("item", Schema = "Team2Part2")]
 public partial class Item
@@ -27,15 +24,9 @@ public partial class Item
     [Column("volume_per_unit")]
     public int? VolumePerUnit { get; set; }
 
-    [InverseProperty("SkuNumberNavigation")]
     public virtual ICollection<Bin> Bins { get; set; } = new List<Bin>();
 
-
-    [InverseProperty("SkuNumberNavigation")]
     public virtual ICollection<ReceivedItem> ReceivedItems { get; set; } = new List<ReceivedItem>();
 
-    [InverseProperty("SkuNumberNavigation")]
     public virtual ICollection<ShippedItem> ShippedItems { get; set; } = new List<ShippedItem>();
-
-   
 }

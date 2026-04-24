@@ -1,6 +1,5 @@
 using Back_EndAPI.Models.Orders;
 using Back_EndAPI.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Back_EndAPI.Controllers;
@@ -14,21 +13,6 @@ public class OrdersController : ControllerBase
     public OrdersController(OrderService service)
     {
         _service = service;
-    }
-
-    [HttpPost]
-    public async Task<ActionResult<OrderResponse>> Create(CreateOrderRequest request)
-    {
-        var result = await _service.CreateAsync(request);
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
-    }
-
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<OrderResponse>> GetById(int id)
-    {
-        var result = await _service.GetByIdAsync(id);
-        if (result == null) return NotFound();
-        return Ok(result);
     }
 
     [HttpPost("{id:int}/pick")]
@@ -49,6 +33,17 @@ public class OrdersController : ControllerBase
     public async Task<ActionResult<OrderResponse>> Ship(int id)
     {
         var result = await _service.ShipAsync(id);
+        return Ok(result);
+    }
+
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetStatus(int id)
+    {
+        var result = await _service.GetStatusAsync(id);
+
+        if (result == null)
+            return NotFound(new { error = "Order not found." });
+
         return Ok(result);
     }
 }

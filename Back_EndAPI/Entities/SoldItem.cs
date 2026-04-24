@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
-
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Back_EndAPI.Entities;
 
 [Table("sold_item", Schema = "Team2Part2")]
-public class OrderLine
+public class SoldItem
 {
     [Column("sku_number")]
     public int SkuNumber { get; set; }
@@ -19,4 +14,3 @@ public class OrderLine
     [Column("qty")]
     public int Qty { get; set; }
 }
-

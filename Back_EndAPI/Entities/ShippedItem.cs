@@ -9,15 +9,11 @@ namespace Back_EndAPI.Entities;
 [Table("shipped_item", Schema = "Team2Part2")]
 public partial class ShippedItem
 {
-    [Key]
-    [Column("id")]
-    public int Id { get; set; }
+    [Column("box_tracking")]
+    public int BoxTracking { get; set; }
 
     [Column("sku_number")]
-    public int? SkuNumber { get; set; }
-
-    [Column("box_tracking")]
-    public int? BoxTracking { get; set; }
+    public int SkuNumber { get; set; }
 
     [Column("qty")]
     public int Qty { get; set; }
@@ -29,7 +25,5 @@ public partial class ShippedItem
     [ForeignKey("SkuNumber")]
     [InverseProperty("ShippedItems")]
     public virtual Item? SkuNumberNavigation { get; set; }
-
-    [InverseProperty("ShippedItem")]
-    public virtual ICollection<TransferRecord> TransferRecords { get; set; } = new List<TransferRecord>();
 }
+
